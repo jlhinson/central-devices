@@ -26,6 +26,7 @@ int count = 0;
 // Enter WiFi and broker details
 const char ssid[] = "ssid";
 const char pass[] = "pass";
+const String deviceID = "0002";
 IPAddress broker(192, 168, 8, 102);
 const String topic = "test";
 
@@ -57,21 +58,39 @@ void setup() {
 	TempF = (temp.temperature*1.8)+32;
 	
 	// Create JSON object with data
+  doc["deviceID"] = deviceID;
 	sensor["temp"] = String(TempF, 1); 
 	sensor["humidity"] = String(humidity.relative_humidity, 1);
 	battery["voltage"] = String(lc.cellVoltage(), 2);
 	battery["percent"] = String(lc.cellPercent(), 1);
+
+  // Disable I2C STEMMA QT power
+	digitalWrite(7, HIGH);
 
 	// Empty out data string and serialize JSON
 	data = "";
 	serializeJson(doc, data);
 
 	// Connect to WiFi
-	while (WiFi.status() != WL_CONNECTED && count < 30) {
+	while (WiFi.status() != WL_CONNECTED && count < 20) {
     count++;
 		delay(500);
 	}
   count = 0;
+
+  // If WiFi is still not connected, try one more time
+  if (WiFi.status() != WL_CONNECTED) {
+    WiFi.disconnect();
+    while (WiFi.status() != WL_CONNECTED && count < 20) {
+      count++;
+		  delay(500);
+	  }
+    count = 0;
+    // If second attempt did not work, go straight to deep sleep
+    if (WiFi.status() != WL_CONNECTED) {
+      esp_deep_sleep_start();
+    }
+  }
 
 	// Connect to MQTT broker
 	while (!client.connect("clientID") && count < 10) {
