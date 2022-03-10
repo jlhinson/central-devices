@@ -7,7 +7,7 @@
 
 // Deep sleep settings
 #define uS_TO_S_FACTOR 1000000ULL // Conversion factor for micro seconds to seconds
-#define TIME_TO_SLEEP 30 // Time to sleep in seconds
+#define TIME_TO_SLEEP 1800 // Time to sleep in seconds
 
 // Initialize components
 WiFiClient net;
